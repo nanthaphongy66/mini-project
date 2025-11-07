@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>จัดการจุดบนแผนที่ - WEB GIS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./assets/style.css" />
+  </head>
+
+  <body>
+    <!-- Modern Navbar -->
+    <div class="container">
+      <div class="header">
+        <div>
+          <img src="./assets/img/treasure-map.png" alt="Logo" width="35px" height="35px" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+          <span style="display:none; font-size: 20px;">🗺️</span>
+        </div>
+        <div>WEB GIS</div>
+      </div>
+      <div class="nav">
+        <div class="header2">
+          <a href="map.html">🏠 หน้าหลัก</a>
+        </div>
+        <div class="header2" style="background: var(--primary); color: var(--white);">
+          <a href="addPoint.html">📍 จัดการจุด</a>
+        </div>
+        <div class="header2">
+          <a href="student.html">📊 ข้อมูลนักศึกษา</a>
+        </div>
+        <div class="header2">
+          <a href="aboutMe.html">👤 เกี่ยวกับฉัน</a>
+        </div>
+        <div class="header3">
+          <a href="index.html">🚪 ออกจากระบบ</a>
+        </div>
+        <div id="welcomeText">ยินดีต้อนรับ!</div>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <div class="text">
+        📍 หน้าสำหรับบันทึก Point ลงฐานข้อมูล และค้นหาจุดที่บันทึกไว้
+      </div>
+      <div class="controls">
+        <select title="Select" id="searchSelect">
+          <option value="">-- เลือกจุดเพื่อค้นหา --</option>
+        </select>
+        <button id="resetBtn">🔄 รีเซ็ต</button>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
+    <script src="./assets/script.js"></script>
+    
+    <script>
+      // Check login status
+      document.addEventListener('DOMContentLoaded', function() {
+        const username = localStorage.getItem("username");
+        if (username) {
+          document.getElementById("welcomeText").textContent = `ยินดีต้อนรับ, ${username}!`;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>แสดงแผนที่ Orthophoto จาก GeoServer</title>
+
+    <!-- โหลด Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      // สร้างแผนที่
+      const map = L.map("map").setView([16.7465, 100.1963], 17);
+
+      // เพิ่มแผนที่พื้นฐาน (OpenStreetMap)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      // เพิ่มชั้นข้อมูลจาก GeoServer (WMS)
+      const orthoLayer = L.tileLayer.wms("http://localhost:8080/geoserver/agi_students/wms", {
+        layers: "agi", // ชื่อเลเยอร์
+        format: "image/png", // รูปแบบภาพที่ใช้
+        transparent: true,   // ให้พื้นหลังโปร่งใส
+        version: "1.1.0",    // เวอร์ชันของ WMS
+      }).addTo(map);
+
+      // กำหนดขอบเขตการมอง (จาก bbox)
+      const bounds = [
+        [16.745382725975073, 100.19538500973735],
+        [16.74755293757479, 100.19716149371177],
+      ];
+      map.fitBounds(bounds);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Me - นันทพงศ์ อยู่มี</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/style.css" />
+    <style>
+      .profile-image-placeholder {
+        width: 280px;
+        height: 280px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.4;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .profile-image-placeholder:hover {
+        transform: scale(1.05);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Modern Navbar -->
+    <div class="container">
+      <div class="header">
+        <div>
+          <img src="./assets/img/treasure-map.png" alt="Logo" width="35px" height="35px" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+          <span style="display:none; font-size: 20px;">🗺️</span>
+        </div>
+        <div>WEB GIS</div>
+      </div>
+      <div class="nav">
+        <div class="header2">
+          <a href="map.html">🏠 หน้าหลัก</a>
+        </div>
+        <div class="header2">
+          <a href="addPoint.html">📍 จัดการจุด</a>
+        </div>
+        <div class="header2">
+          <a href="student.html">📊 ข้อมูลนักศึกษา</a>
+        </div>
+        <div class="header2" style="background: var(--primary); color: var(--white);">
+          <a href="aboutMe.html">👤 เกี่ยวกับฉัน</a>
+        </div>
+        <div class="header3">
+          <a href="index.html">🚪 ออกจากระบบ</a>
+        </div>
+        <div id="welcomeText">ยินดีต้อนรับ!</div>
+      </div>
+    </div>
+    
+    <!-- Content Section -->
+    <div class="content fade-in-up">
+      <!-- Image Section -->
+      <div class="img">
+        <img src="./assets/img/me.jpg" alt="Profile Picture" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div class="profile-image-placeholder" style="display:none;">
+          <div>
+            📸<br>
+            รูปโปรไฟล์<br>
+            นันทพงศ์ อยู่มี
+          </div>
+        </div>
+      </div>
+      
+      <!-- Text Section -->
+      <div class="text">
+        <div class="profile-title">นันทพงศ์ อยู่มี</div>
+        <div class="profile-subtitle">นักศึกษาสาขา ภูมิศาสตร์ | มหาวิทยาลัยนเรศวร</div>
+        
+        <div class="info-item">
+          <div class="label">ชื่อเล่น</div>
+          <div class="value">อู้ฟู่</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">ติดต่อ</div>
+          <div class="value">nanthaphongy66@nu.ac.th</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">บุคลิกภาพ</div>
+          <div class="value">เป็นคนร่าเริง พูดเก่ง เอาใจใส่คนอื่นเป็นอย่างดี</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">ความสามารถ</div>
+          <div class="value">ทำอาหาร ทำขนมเบเกอรี่</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">คติประจำใจ</div>
+          <div class="value">อย่าปล่อยให้ความกลัวมาทำลายความฝัน</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Smooth entrance animations
+      document.addEventListener('DOMContentLoaded', function() {
+        const items = document.querySelectorAll('.info-item');
+        items.forEach((item, index) => {
+          item.style.opacity = '0';
+          item.style.transform = 'translateY(30px)';
+          setTimeout(() => {
+            item.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+          }, 200 + (index * 100));
+        });
+
+        // Interactive hover effects
+        items.forEach(item => {
+          item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(12px) translateY(-2px)';
+          });
+          
+          item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0) translateY(0)';
+          });
+        });
+
+        // Typing effect for title
+        const title = document.querySelector('.profile-title');
+        const originalText = title.textContent;
+        title.textContent = '';
+        
+        let i = 0;
+        const typeWriter = () => {
+          if (i < originalText.length) {
+            title.textContent += originalText.charAt(i);
+            i++;
+            setTimeout(typeWriter, 100);
+          }
+        };
+        
+        setTimeout(typeWriter, 500);
+
+        // Check login status
+        const username = localStorage.getItem("username");
+        if (username) {
+          document.getElementById("welcomeText").textContent = `ยินดีต้อนรับ, ${username}!`;
+        }
+      });
+    </script>
+  </body>
+</html>

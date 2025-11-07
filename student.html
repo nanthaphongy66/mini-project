@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ระบบจัดการข้อมูลนักศึกษา AGI_67</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+      :root {
+        --primary: #1f2937;
+        --primary-dark: #111827;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --white: #ffffff;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: var(--gray-50);
+        color: var(--gray-800);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--white);
+        box-shadow: var(--shadow-sm);
+        border-bottom: 1px solid var(--gray-200);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 0 32px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 700;
+        padding: 18px 0;
+        color: var(--gray-900);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 0;
+      }
+
+      .header2, .header3 {
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .header2 {
+        background: var(--gray-100);
+        color: var(--gray-700);
+      }
+
+      .header2:hover {
+        background: var(--gray-200);
+        transform: translateY(-1px);
+      }
+
+      .header3 {
+        background: var(--gray-700);
+        color: var(--white);
+      }
+
+      #welcomeText {
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 18px;
+        background: var(--gray-800);
+        color: var(--white);
+        border-radius: 50px;
+      }
+
+      .main-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+
+      .stat-card {
+        background: var(--white);
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .stat-card h3 {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-bottom: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .stat-card p {
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .controls {
+        background: var(--white);
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 24px;
+      }
+
+      .search-filter {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto auto;
+        gap: 16px;
+        align-items: center;
+      }
+
+      input[type="text"], select {
+        padding: 14px 20px;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        outline: none;
+        transition: var(--transition);
+      }
+
+      input[type="text"]:focus, select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
+      }
+
+      button {
+        padding: 14px 28px;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: var(--white);
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: var(--white);
+      }
+
+      .btn-success:hover {
+        background: #059669;
+        transform: translateY(-1px);
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 24px;
+      }
+
+      .table-container, .map-container {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--gray-900);
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--gray-100);
+      }
+
+      .table-scroll {
+        max-height: 550px;
+        overflow-y: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      thead {
+        background: var(--gray-50);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      th {
+        padding: 14px 12px;
+        text-align: left;
+        font-weight: 700;
+        color: var(--gray-600);
+        font-size: 12px;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--gray-200);
+      }
+
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 14px;
+        color: var(--gray-700);
+      }
+
+      tbody tr {
+        transition: var(--transition);
+        cursor: pointer;
+      }
+
+      tbody tr:hover {
+        background: var(--gray-50);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        background: var(--primary);
+        color: var(--white);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-edit, .btn-delete {
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+        transition: var(--transition);
+      }
+
+      .btn-edit {
+        background: var(--warning);
+        color: var(--white);
+      }
+
+      .btn-edit:hover {
+        background: #d97706;
+      }
+
+      .btn-delete {
+        background: var(--danger);
+        color: var(--white);
+      }
+
+      .btn-delete:hover {
+        background: #dc2626;
+      }
+
+      #map {
+        height: 550px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-200);
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background: var(--white);
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xl);
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--gray-900);
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--gray-100);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition);
+      }
+
+      .form-group input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .form-actions button {
+        flex: 1;
+        padding: 14px;
+      }
+
+      .notification {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        padding: 16px 24px;
+        background: var(--success);
+        color: white;
+        border-radius: 10px;
+        box-shadow: var(--shadow-xl);
+        z-index: 10000;
+        font-weight: 600;
+        transform: translateX(400px);
+        transition: var(--transition);
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.error {
+        background: var(--danger);
+      }
+
+      @media (max-width: 1200px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+        
+        .search-filter {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <span>🗺️</span>
+        <div>WEB GIS</div>
+      </div>
+      <div class="nav">
+        <div class="header2" onclick="window.location.href='map.html'">
+          🏠 หน้าหลัก
+        </div>
+        <div class="header2" onclick="window.location.href='addPoint.html'">
+          📍 จัดการจุด
+        </div>
+        <div class="header2" style="background: var(--primary); color: var(--white);">
+          📊 ข้อมูลนักศึกษา
+        </div>
+        <div class="header2" onclick="window.location.href='aboutMe.html'">
+          👤 เกี่ยวกับฉัน
+        </div>
+        <div class="header3" onclick="window.location.href='index.html'">
+          🚪 ออกจากระบบ
+        </div>
+        <div id="welcomeText">ยินดีต้อนรับ!</div>
+      </div>
+    </div>
+
+    <div class="main-wrapper">
+      <div class="stats">
+        <div class="stat-card">
+          <h3>จำนวนนักศึกษาทั้งหมด</h3>
+          <p id="total-students">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>จำนวนหลักสูตร</h3>
+          <p id="total-programs">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>จำนวนภาควิชา</h3>
+          <p id="total-departments">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>ผลการกรอง</h3>
+          <p id="filtered-count">0</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search-filter">
+          <input
+            type="text"
+            id="search"
+            placeholder="🔍 ค้นหาชื่อ-นามสกุล, รหัสนักศึกษา หรือจังหวัด..."
+          />
+          <select id="filter-program">
+            <option value="">📚 ทุกหลักสูตร</option>
+          </select>
+          <select id="filter-department">
+            <option value="">🏛️ ทุกภาควิชา</option>
+          </select>
+          <button class="btn-primary" id="btn-clear">🔄 ล้างการค้นหา</button>
+          <button class="btn-success" id="btn-add">➕ เพิ่มนักศึกษา</button>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="table-container">
+          <div class="section-title">📋 รายชื่อนักศึกษา</div>
+          <div class="table-scroll">
+            <table id="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>รหัสนักศึกษา</th>
+                  <th>ชื่อ-นามสกุล</th>
+                  <th>หลักสูตร</th>
+                  <th>ภาควิชา</th>
+                  <th>จังหวัด</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="map-container">
+          <div class="section-title">🗺️ แผนที่แสดงตำแหน่ง</div>
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="studentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header" id="modalTitle">เพิ่มนักศึกษาใหม่</div>
+        <form id="studentForm">
+          <input type="hidden" id="student-id">
+          
+          <div class="form-group">
+            <label>รหัสนักศึกษา *</label>
+            <input type="text" id="student-sid" required>
+          </div>
+          
+          <div class="form-group">
+            <label>ชื่อ-นามสกุล *</label>
+            <input type="text" id="student-name" required>
+          </div>
+          
+          <div class="form-group">
+            <label>หลักสูตร *</label>
+            <input type="text" id="student-program" required>
+          </div>
+          
+          <div class="form-group">
+            <label>ภาควิชา *</label>
+            <input type="text" id="student-department" required>
+          </div>
+          
+          <div class="form-group">
+            <label>คณะ *</label>
+            <input type="text" id="student-faculty" required>
+          </div>
+          
+          <div class="form-group">
+            <label>จังหวัด *</label>
+            <input type="text" id="student-province" required>
+          </div>
+          
+          <div class="form-group">
+            <label>ละติจูด (Latitude) *</label>
+            <input type="text" id="student-lat" required placeholder="เช่น 16.8219">
+          </div>
+          
+          <div class="form-group">
+            <label>ลองจิจูด (Longitude) *</label>
+            <input type="text" id="student-long" required placeholder="เช่น 100.2659">
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-success">💾 บันทึก</button>
+            <button type="button" class="btn-primary" onclick="closeModal()">❌ ยกเลิก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+  let allData = [];
+  let filteredData = [];
+  let map;
+  let markers = [];
+  let editingId = null;
+
+  // Helper function to get field value (supports both Thai and English names)
+  function getFieldValue(item, thaiName, englishName, defaultValue = '') {
+    return item[englishName] || item[thaiName] || defaultValue;
+  }
+
+  // Initialize Map
+  function initMap() {
+    map = L.map("map", {
+      zoomControl: false,
+      attributionControl: true
+    }).setView([16.5, 100.2], 7);
+    
+    L.control.zoom({
+      position: 'topright'
+    }).addTo(map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+  }
+
+  // Update Map Markers
+  function updateMap(data) {
+    markers.forEach((marker) => map.removeLayer(marker));
+    markers = [];
+
+    data.forEach((item) => {
+      if (item.lat && item.long) {
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.long);
+
+        const customIcon = L.icon({
+          iconUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E",
+          iconSize: [28, 28],
+          iconAnchor: [14, 28],
+          popupAnchor: [0, -28],
+        });
+
+        const program = getFieldValue(item, 'หลักสูตร', 'program');
+        const province = getFieldValue(item, 'จังหวัด', 'province');
+
+        const marker = L.marker([lat, lng], { icon: customIcon })
+          .bindPopup(`
+            <div style="font-family: 'Inter', sans-serif; min-width: 200px;">
+              <h3 style="margin: 0 0 10px 0; color: #1e293b; font-size: 16px; font-weight: 700;">${item.s_name}</h3>
+              <div style="margin: 5px 0; color: #64748b; font-size: 14px;">
+                <strong>รหัส:</strong> ${item.s_id}<br>
+                <strong>หลักสูตร:</strong> ${program}<br>
+                <strong>จังหวัด:</strong> ${province}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+        markers.push(marker);
+      }
+    });
+
+    if (data.length > 0 && data[0].lat && data[0].long) {
+      const bounds = L.latLngBounds(data.map(item => [parseFloat(item.lat), parseFloat(item.long)]));
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+  }
+
+  // Render Table
+  function renderTable(data) {
+    const tbody = document.querySelector("#data-table tbody");
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">
+            ไม่พบข้อมูลที่ตรงกับการค้นหา
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    data.forEach((item) => {
+      const program = getFieldValue(item, 'หลักสูตร', 'program');
+      const department = getFieldValue(item, 'ภาควิชา', 'department');
+      const province = getFieldValue(item, 'จังหวัด', 'province');
+      
+      const row = document.createElement("tr");
+      
+      row.innerHTML = `
+        <td style="font-weight: 600;">${item.id}</td>
+        <td style="font-weight: 600; color: #1e293b;">${item.s_id}</td>
+        <td><strong style="color: #1e293b;">${item.s_name}</strong></td>
+        <td><span class="badge">${program}</span></td>
+        <td style="color: #64748b; font-weight: 500;">${department}</td>
+        <td style="color: #1e293b; font-weight: 500;">${province}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-edit" onclick="editStudent(${item.id})">✏️ แก้ไข</button>
+            <button class="btn-delete" onclick="deleteStudent(${item.id})">🗑️ ลบ</button>
+          </div>
+        </td>
+      `;
+      
+      row.addEventListener("click", (e) => {
+        if (!e.target.closest('button')) {
+          if (item.lat && item.long) {
+            const lat = parseFloat(item.lat);
+            const lng = parseFloat(item.long);
+            map.setView([lat, lng], 12);
+            
+            markers.forEach((marker) => {
+              const pos = marker.getLatLng();
+              if (Math.abs(pos.lat - lat) < 0.001 && Math.abs(pos.lng - lng) < 0.001) {
+                marker.openPopup();
+              }
+            });
+          }
+        }
+      });
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  // Update Statistics
+  function updateStats() {
+    const programs = [...new Set(allData.map((d) => 
+      getFieldValue(d, 'หลักสูตร', 'program')
+    ))].filter(p => p);
+    
+    const departments = [...new Set(allData.map((d) => 
+      getFieldValue(d, 'ภาควิชา', 'department')
+    ))].filter(d => d);
+
+    animateNumber("total-students", allData.length);
+    animateNumber("total-programs", programs.length);
+    animateNumber("total-departments", departments.length);
+    animateNumber("filtered-count", filteredData.length);
+
+    const programSelect = document.getElementById("filter-program");
+    const departmentSelect = document.getElementById("filter-department");
+
+    programSelect.innerHTML = '<option value="">📚 ทุกหลักสูตร</option>';
+    programs.forEach((p) => {
+      programSelect.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    departmentSelect.innerHTML = '<option value="">🏛️ ทุกภาควิชา</option>';
+    departments.forEach((d) => {
+      departmentSelect.innerHTML += `<option value="${d}">${d}</option>`;
+    });
+  }
+
+  // Animate Number
+  function animateNumber(elementId, targetNumber) {
+    const element = document.getElementById(elementId);
+    const duration = 1000;
+    const startTime = Date.now();
+
+    function updateNumber() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const currentNumber = Math.round(targetNumber * progress);
+      element.textContent = currentNumber;
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateNumber);
+      }
+    }
+    
+    updateNumber();
+  }
+
+  // Filter Data
+  function filterData() {
+    const searchTerm = document.getElementById("search").value.toLowerCase();
+    const programFilter = document.getElementById("filter-program").value;
+    const departmentFilter = document.getElementById("filter-department").value;
+
+    filteredData = allData.filter((item) => {
+      const program = getFieldValue(item, 'หลักสูตร', 'program');
+      const department = getFieldValue(item, 'ภาควิชา', 'department');
+      const province = getFieldValue(item, 'จังหวัด', 'province');
+      
+      const matchSearch =
+        item.s_name.toLowerCase().includes(searchTerm) ||
+        province.toLowerCase().includes(searchTerm) ||
+        item.s_id.toString().includes(searchTerm);
+      const matchProgram = !programFilter || program === programFilter;
+      const matchDepartment = !departmentFilter || department === departmentFilter;
+
+      return matchSearch && matchProgram && matchDepartment;
+    });
+
+    renderTable(filteredData);
+    updateMap(filteredData);
+    animateNumber("filtered-count", filteredData.length);
+  }
+
+  // Show Notification
+  function showNotification(message, isError = false) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${isError ? 'error' : ''}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+  }
+
+  // Modal Functions
+  function openModal(title = "เพิ่มนักศึกษาใหม่") {
+    document.getElementById("modalTitle").textContent = title;
+    document.getElementById("studentModal").classList.add("show");
+  }
+
+  function closeModal() {
+    document.getElementById("studentModal").classList.remove("show");
+    document.getElementById("studentForm").reset();
+    editingId = null;
+  }
+
+  // Add Student
+  document.getElementById("btn-add").addEventListener("click", () => {
+    openModal("เพิ่มนักศึกษาใหม่");
+  });
+
+  // Edit Student
+  window.editStudent = function(id) {
+    const student = allData.find(s => s.id === id);
+    if (!student) {
+      showNotification('ไม่พบข้อมูลนักศึกษา', true);
+      return;
+    }
+
+    editingId = id;
+    document.getElementById("student-id").value = id;
+    document.getElementById("student-sid").value = student.s_id || '';
+    document.getElementById("student-name").value = student.s_name || '';
+    document.getElementById("student-program").value = getFieldValue(student, 'หลักสูตร', 'program');
+    document.getElementById("student-department").value = getFieldValue(student, 'ภาควิชา', 'department');
+    document.getElementById("student-faculty").value = getFieldValue(student, 'คณะ', 'faculty');
+    document.getElementById("student-province").value = getFieldValue(student, 'จังหวัด', 'province');
+    document.getElementById("student-lat").value = student.lat || '';
+    document.getElementById("student-long").value = student.long || '';
+
+    openModal("แก้ไขข้อมูลนักศึกษา");
+  };
+
+  // Delete Student
+  window.deleteStudent = async function(id) {
+    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบนักศึกษารายนี้?")) return;
+
+    try {
+      const response = await fetch('./api.php?action=delete_student', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: id })
+      });
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        allData = allData.filter(s => s.id !== id);
+        filteredData = filteredData.filter(s => s.id !== id);
+        
+        updateStats();
+        renderTable(filteredData);
+        updateMap(filteredData);
+        
+        showNotification("ลบข้อมูลนักศึกษาสำเร็จ");
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      showNotification('เกิดข้อผิดพลาดในการลบข้อมูล', true);
+    }
+  };
+
+  // Form Submit
+  document.getElementById("studentForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const studentData = {
+      s_id: document.getElementById("student-sid").value,
+      s_name: document.getElementById("student-name").value,
+      program: document.getElementById("student-program").value,
+      department: document.getElementById("student-department").value,
+      faculty: document.getElementById("student-faculty").value,
+      province: document.getElementById("student-province").value,
+      lat: document.getElementById("student-lat").value,
+      long: document.getElementById("student-long").value,
+    };
+
+    try {
+      if (editingId) {
+        // Update existing student
+        studentData.id = editingId;
+        
+        const response = await fetch('./api.php?action=update_student', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(studentData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          const index = allData.findIndex(s => s.id === editingId);
+          if (index !== -1) {
+            allData[index] = { 
+              ...allData[index], 
+              ...studentData,
+              id: editingId
+            };
+          }
+          showNotification("แก้ไขข้อมูลนักศึกษาสำเร็จ");
+        } else {
+          throw new Error(result.message);
+        }
+      } else {
+        // Add new student
+        const response = await fetch('./api.php?action=add_student', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(studentData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          const newStudent = {
+            ...studentData,
+            id: result.id
+          };
+          allData.push(newStudent);
+          showNotification("เพิ่มนักศึกษาใหม่สำเร็จ");
+        } else {
+          throw new Error(result.message);
+        }
+      }
+
+      closeModal();
+      filteredData = allData;
+      updateStats();
+      renderTable(filteredData);
+      updateMap(filteredData);
+      
+    } catch (error) {
+      console.error('Error saving student:', error);
+      showNotification('เกิดข้อผิดพลาดในการบันทึกข้อมูล', true);
+    }
+  });
+
+  // Clear Filter
+  document.getElementById("btn-clear").addEventListener("click", () => {
+    document.getElementById("search").value = "";
+    document.getElementById("filter-program").value = "";
+    document.getElementById("filter-department").value = "";
+    filterData();
+  });
+
+  // Event Listeners
+  document.getElementById("search").addEventListener("input", filterData);
+  document.getElementById("filter-program").addEventListener("change", filterData);
+  document.getElementById("filter-department").addEventListener("change", filterData);
+
+  // Close modal when clicking outside
+  document.getElementById("studentModal").addEventListener("click", (e) => {
+    if (e.target.id === "studentModal") {
+      closeModal();
+    }
+  });
+
+  // Initialize
+  initMap();
+
+  // Load data from API
+  async function loadStudents() {
+    try {
+      const response = await fetch('./api.php?action=students');
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        allData = data;
+        filteredData = data;
+        updateStats();
+        renderTable(allData);
+        updateMap(allData);
+        showNotification(`โหลดข้อมูลนักศึกษาสำเร็จ: ${data.length} คน`);
+      } else {
+        throw new Error('Invalid data format');
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
+      showNotification('ไม่สามารถโหลดข้อมูลได้', true);
+      
+      allData = [];
+      filteredData = [];
+      updateStats();
+      renderTable(allData);
+    }
+  }
+
+  // Load data on page load
+  loadStudents();
+
+  // Check login status
+  const username = localStorage.getItem("username");
+  if (username) {
+    document.getElementById("welcomeText").textContent = `ยินดีต้อนรับ, ${username}!`;
+  }
+
+  console.log("✅ Student Management System โหลดเสร็จสมบูรณ์");
+</script>
+  </body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WEB GIS - สถานที่ท่องเที่ยว</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <link rel="stylesheet" href="./assets/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <span style="font-size: 20px;">🗺️</span>
+        <div>WEB GIS - สถานที่ท่องเที่ยว</div>
+      </div>
+      <div class="nav">
+        <div class="header2" style="background: var(--primary); color: var(--white);">
+          🏠 หน้าหลัก
+        </div>
+        <div class="header2" onclick="window.location.href='addPoint.html'">
+          📍 จัดการจุด
+        </div>
+        <div class="header2" onclick="window.location.href='student.html'">
+          📊 ข้อมูลนักศึกษา
+        </div>
+        <div class="header2" onclick="window.location.href='aboutMe.html'">
+          👤 เกี่ยวกับฉัน
+        </div>
+        <div class="header3" onclick="window.location.href='index.html'">
+          🚪 ออกจากระบบ
+        </div>
+        <div id="welcomeText">ยินดีต้อนรับ!</div>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <div class="controls">
+        <div class="text">🎯 สถานที่ท่องเที่ยวในระบบ</div>
+        <select id="searchSelect">
+          <option value="">-- เลือกสถานที่เพื่อค้นหา --</option>
+        </select>
+        <button id="resetBtn">🔄 รีเซ็ตมุมมอง</button>
+      </div>
+
+      <div id="map"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
+
+    <script>
+      // ==========================
+      // สร้างแผนที่
+      // ==========================
+      const map = L.map("map", {
+        zoomControl: false,
+        attributionControl: true
+      }).setView([16.5, 100.5], 8);
+
+      L.control.zoom({
+        position: 'topright'
+      }).addTo(map);
+
+      // ==========================
+      // Base Maps
+      // ==========================
+      const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      const satellite = L.tileLayer(
+        "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        {
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"],
+          attribution: "Google Satellite",
+        }
+      );
+
+      const topo = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+        maxZoom: 17,
+        attribution: "Map data: &copy; OpenStreetMap, SRTM | Map style: &copy; OpenTopoMap",
+      });
+
+      // ==========================
+      // LayerGroup สำหรับจุดที่บันทึก
+      // ==========================
+      const userPointsLayer = L.layerGroup().addTo(map);
+
+      const userIcon = L.icon({
+        iconUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dc2626'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E",
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36],
+      });
+
+      let userMarkers = [];
+
+      // ==========================
+      // LayerGroup สำหรับฝน (API)
+      // ==========================
+      const rainLayer = L.layerGroup();
+
+      async function loadRainData() {
+        try {
+          const url = "https://api-v3.thaiwater.net/api/v1/thaiwater30/public/thailand_main_rain?province_code=65";
+          const response = await axios.get(url);
+          const data = response.data.data;
+
+          const rainIcon = L.icon({
+            iconUrl: "assets/img/water.png",
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          });
+
+          data.forEach((item) => {
+            const lat = item.station.tele_station_lat;
+            const lon = item.station.tele_station_long;
+            const name = item.station.tele_station_name.th;
+            const rain = item.rain_24h ?? 0;
+            const time = item.rainfall_datetime;
+            const province = item.geocode.province_name.th;
+
+            const marker = L.marker([lat, lon], { icon: rainIcon }).bindPopup(`
+              <b>${name}</b><br>
+              🌧️ ปริมาณฝน 24 ชม.: <b>${rain} มม.</b><br>
+              🕐 เวลา: ${time}<br>
+              📍 จังหวัด: ${province}
+            `);
+
+            marker.addTo(rainLayer);
+          });
+        } catch (error) {
+          console.error("Error loading rain data:", error);
+        }
+      }
+      loadRainData();
+
+      // ==========================
+      // LayerGroup สำหรับระดับน้ำ (API)
+      // ==========================
+      const waterLayer = L.layerGroup();
+
+      async function loadWaterData() {
+        try {
+          const url = "https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load";
+          const response = await axios.get(url);
+          const data = response.data.waterlevel_data.data;
+
+          const waterIcon = L.icon({
+            iconUrl: "assets/img/water-level.png",            
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          });
+
+          data.forEach((item) => {
+            const lat = item.station.tele_station_lat;
+            const lon = item.station.tele_station_long;
+            const name = item.station.tele_station_name.th;
+            const level = item.waterlevel_msl ?? "ไม่มีข้อมูล";
+            const river = item.river_name ?? "-";
+
+            const marker = L.marker([lat, lon], { icon: waterIcon }).bindPopup(`
+              <b>${name}</b><br>
+              🌊 ระดับน้ำ (MSL): <b>${level} ม.</b><br>
+              🏞️ แม่น้ำ/คลอง: ${river}<br>
+              🕐 เวลา: ${item.waterlevel_datetime}
+            `);
+
+            marker.addTo(waterLayer);
+          });
+        } catch (error) {
+          console.error("Error loading water data:", error);
+        }
+      }
+      loadWaterData();
+
+      // ==========================
+      // LayerGroup สำหรับ CSV (Landslide Monitoring)
+      // ==========================
+      const csvLayer = L.layerGroup();
+
+      const csvIcon = L.icon({
+        iconUrl: "assets/img/pin-point.png",            
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+      });
+
+      Papa.parse("sl_monitoring_05010107.csv", {
+        download: true,
+        header: true,
+        complete: function (results) {
+          results.data.forEach((row) => {
+            const easting = parseFloat(row.UTM_E);
+            const northing = parseFloat(row.UTM_N);
+
+            if (!isNaN(easting) && !isNaN(northing)) {
+              const utmProjection = "+proj=utm +zone=47 +datum=WGS84 +units=m +no_defs";
+              const wgs84 = "+proj=longlat +datum=WGS84 +no_defs";
+              const [lng, lat] = proj4(utmProjection, wgs84, [easting, northing]);
+
+              const marker = L.marker([lat, lng], { icon: csvIcon })
+                .bindPopup(`
+                  <b>สถานี:</b> ${row.STAT_ID || "-"}<br>
+                  <b>บ้าน:</b> ${row.BAN || "-"}<br>
+                  <b>ตำบล:</b> ${row.TAMBON || "-"}<br>
+                  <b>อำเภอ:</b> ${row.DISTRICT || "-"}<br>
+                  <b>จังหวัด:</b> ${row.PROVINCE || "-"}<br>
+                  <b>ปี:</b> ${row.YEAR || "-"}<br>
+                `);
+              csvLayer.addLayer(marker);
+            }
+          });
+        },
+      });
+
+      // ==========================
+      // GeoJSON - ขอบเขตจังหวัด
+      // ==========================
+      function popUp(f, l) {
+        var out = [];
+        if (f.properties) {
+          for (key in f.properties) {
+            out.push(key + ": " + f.properties[key]);
+          }
+          l.bindPopup(out.join("<br />"));
+        }
+      }
+
+      var ThaiProvJSON = new L.GeoJSON.AJAX(["./thailand_province.geojson"], {
+        onEachFeature: popUp,
+        style: {
+          color: '#3b82f6',
+          weight: 2,
+          fillOpacity: 0.1
+        }
+      });
+
+      // ==========================
+      // GeoServer WMS Layers
+      // ==========================
+      var road = L.tileLayer.wms(
+        "http://localhost:8080/geoserver/agi_students/wms",
+        {
+          layers: "agi_students:road",
+          format: "image/png",
+          transparent: true,
+        }
+      );
+
+      var district = L.tileLayer.wms(
+        "http://localhost:8080/geoserver/agi_students/wms",
+        {
+          layers: "agi_students:district",
+          format: "image/png",
+          transparent: true,
+        }
+      );
+
+      // const orthoLayer = L.tileLayer.wms("http://localhost:8080/geoserver/agi_students/wms", {
+      //   layers: "agi",
+      //   format: "image/png",
+      //   transparent: true,
+      //   version: "1.1.0",
+      // });
+
+      // ==========================
+      // โหลดจุดท่องเที่ยวจาก Database
+      // ==========================
+      function updatePopup(marker, id, name, description) {
+        marker.bindPopup(`
+          <div style="min-width: 250px; font-family: 'Inter', sans-serif;">
+            <h3 style="margin: 0 0 12px 0; color: #1e293b; font-size: 18px; font-weight: 700;">📍 ${name}</h3>
+            <p style="margin: 6px 0; color: #64748b; font-size: 14px; line-height: 1.6;">${description || 'ไม่มีรายละเอียด'}</p>
+          </div>
+        `);
+      }
+
+      async function refreshPoints() {
+        try {
+          userPointsLayer.clearLayers();
+          userMarkers = [];
+
+          const res = await axios.get("./api.php?action=points");
+          const points = Array.isArray(res.data) ? res.data : [];
+
+          const select = document.getElementById("searchSelect");
+          select.innerHTML = '<option value="">-- เลือกสถานที่เพื่อค้นหา --</option>';
+
+          points.forEach((p) => {
+            const marker = L.marker([p.lat, p.lon], { icon: userIcon });
+            updatePopup(marker, p.id, p.name, p.description);
+            marker.addTo(userPointsLayer);
+            userMarkers.push({ marker: marker, name: p.name, id: p.id });
+
+            const option = document.createElement("option");
+            option.value = p.id;
+            option.text = `📍 ${p.name}`;
+            select.add(option);
+          });
+
+          console.log(`✅ โหลดจุดสำเร็จ: ${points.length} จุด`);
+        } catch (error) {
+          console.error("Error loading points:", error);
+        }
+      }
+
+      refreshPoints();
+
+      // ==========================
+      // Dropdown: เลือก Marker เพื่อค้นหา
+      // ==========================
+      document.getElementById("searchSelect").onchange = function () {
+        const selectedId = this.value;
+        if (!selectedId) return;
+
+        const item = userMarkers.find((x) => x.id == selectedId);
+        if (item) {
+          map.setView(item.marker.getLatLng(), 14);
+          item.marker.openPopup();
+        }
+      };
+
+      // ==========================
+      // ปุ่มรีเซ็ต
+      // ==========================
+      document.getElementById("resetBtn").onclick = function () {
+        map.setView([16.5, 100.5], 8);
+        document.getElementById("searchSelect").value = "";
+        map.closePopup();
+      };
+
+      // ==========================
+      // Layer Control
+      // ==========================
+      const baseMaps = {
+        "🗺️ แผนที่มาตรฐาน": osm,
+        "🛰️ ภาพดาวเทียม": satellite,
+        "⛰️ แผนที่ภูมิประเทศ": topo,
+      };
+
+      const overlayMaps = {
+        "📍 สถานที่ท่องเที่ยว": userPointsLayer,
+        "🌧️ ฝน 24 ชม. (API)": rainLayer,
+        "🌊 ระดับน้ำ (API)": waterLayer,
+        "🗺️ ขอบเขตจังหวัด (GeoJSON)": ThaiProvJSON,
+        "⚠️ สถานีตรวจวัดดินถ่วง (CSV)": csvLayer,
+        "🛣️ ถนนในจังหวัดพิษณุโลก (WMS)": road,
+        "🏛️ ขอบเขตอำเภอ (WMS)": district,
+        // "📸 ภาพ Ortho AGI (WMS)": orthoLayer,
+      };
+
+      const layerControl = L.control.layers(baseMaps, overlayMaps, { 
+        collapsed: false,
+        position: 'topleft'
+      }).addTo(map);
+
+      // ==========================
+      // GeoServer WFS
+      // ==========================
+      fetch("get_wfs.php")
+        .then(res => res.json())
+        .then(data => {
+          const geoLayer = L.geoJSON(data, {
+            style: { color: "blue", weight: 2, fillOpacity: 0.3 },
+            onEachFeature: (feature, layer) => {
+              const props = feature.properties;
+              let popup = "";
+              for (const key in props) {
+                popup += `<b>${key}</b>: ${props[key]}<br>`;
+              }
+              layer.bindPopup(popup);
+            }
+          });
+          layerControl.addOverlay(geoLayer, "🌳 ป่าสงวนแห่งชาติ (WFS)");
+        })
+        .catch(err => console.error("โหลดข้อมูล WFS ไม่ได้:", err));
+
+      // ==========================
+      // Scale Control
+      // ==========================
+      L.control.scale({ 
+        imperial: false, 
+        metric: true,
+        position: 'bottomleft'
+      }).addTo(map);
+
+      // ==========================
+      // Check Login
+      // ==========================
+      const username = localStorage.getItem("username");
+      if (username) {
+        document.getElementById("welcomeText").textContent = `ยินดีต้อนรับ, ${username}!`;
+      }
+
+      console.log("✅ Enhanced WEB GIS System โหลดเสร็จสมบูรณ์");
+    </script>
+  </body>
+</html>
